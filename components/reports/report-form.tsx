@@ -193,9 +193,10 @@ export function ReportForm({
             loading={pending}
             disabled={!formDataRef.current}
             onClick={() => {
-              if (formDataRef.current) {
+              const formData = formDataRef.current;
+              if (formData) {
                 startTransition(() => {
-                  action(formDataRef.current);
+                  action(formData);
                 });
               }
             }}

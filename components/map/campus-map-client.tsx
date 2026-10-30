@@ -16,8 +16,18 @@ const CampusMap = dynamic(() => import("./campus-map"), {
 
 export function CampusMapClient({
   locations,
+  defaultCenter,
+  defaultZoom,
 }: {
   locations: CampusLocation[];
+  defaultCenter?: { latitude: number; longitude: number };
+  defaultZoom?: number;
 }) {
-  return <CampusMap locations={locations} />;
+  return (
+    <CampusMap
+      locations={locations}
+      defaultCenter={defaultCenter}
+      defaultZoom={defaultZoom}
+    />
+  );
 }

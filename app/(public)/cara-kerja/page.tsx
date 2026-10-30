@@ -74,7 +74,7 @@ export default function HowItWorksPage() {
             <Link
               href="/cari"
               className={buttonVariants({
-                variant: "outline",
+                variant: "secondary",
                 size: "lg",
                 className: "rounded-full border-line font-semibold",
               })}
@@ -313,7 +313,7 @@ export default function HowItWorksPage() {
           <Link
             href="/login"
             className={buttonVariants({
-              variant: "outline",
+              variant: "secondary",
               size: "lg",
               className:
                 "rounded-full border-line font-semibold w-full sm:w-auto",

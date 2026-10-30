@@ -6,8 +6,12 @@ import type { CampusLocation } from "@/types";
 
 export default function CampusMap({
   locations,
+  defaultCenter,
+  defaultZoom = 16,
 }: {
   locations: CampusLocation[];
+  defaultCenter?: { latitude: number; longitude: number };
+  defaultZoom?: number;
 }) {
   const points = locations.filter(
     (location) =>
@@ -17,12 +21,15 @@ export default function CampusMap({
   const center: [number, number] =
     points.length > 0
       ? [Number(points[0].latitude), Number(points[0].longitude)]
-      : [-6.9175, 107.6191];
+      : [
+          defaultCenter?.latitude ?? -6.9175,
+          defaultCenter?.longitude ?? 107.6191,
+        ];
 
   return (
     <MapContainer
       center={center}
-      zoom={16}
+      zoom={defaultZoom}
       scrollWheelZoom={false}
       className="h-[520px] w-full"
     >

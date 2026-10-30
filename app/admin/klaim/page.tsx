@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { KeyRound, Search, ArrowRight, User, Package } from "lucide-react";
 import { Alert } from "@/components/ui/alert";
+import { Card } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Input } from "@/components/ui/field";
 import { StatusBadge } from "@/components/ui/status-badge";
