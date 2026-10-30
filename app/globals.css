@@ -1,0 +1,158 @@
+/* BARIS 1: WAJIB DI PALING ATAS */
+@import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300..800;1,300..800&display=swap");
+@import "tailwindcss";
+
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+:root {
+  /* Surface & Base (Light Blue / Clean White) */
+  --paper: #f0f6ff;
+  --surface: #ffffff;
+  --surface-2: #f1f5f9;
+  --ink: #0f172a;
+  --ink-soft: #475569;
+  --muted: #94a3b8;
+  --line: #e2e8f0;
+  --line-strong: #cbd5e1;
+
+  /* Primary Brand (Electric Blue - Sesuai Gambar) */
+  --brand: #0a53f8;
+  --brand-strong: #023ec2;
+  --brand-soft: #eff6ff;
+  --accent: #f59e0b;
+  --accent-soft: #fef3c7;
+  --danger: #ef4444;
+  --danger-soft: #fee2e2;
+  --info: #0284c7;
+  --info-soft: #e0f2fe;
+  --ring: #0a53f8;
+
+  --on-brand: #ffffff;
+  --on-accent: #1e1b4b;
+  --shadow-tint: 15 23 42;
+
+  /* App Gradient Background (Sesuai Gambar Acuan) */
+  --bg-gradient-from: #0a53f8;
+  --bg-gradient-to: #ffffff;
+}
+
+@theme inline {
+  --color-paper: var(--paper);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-brand: var(--brand);
+  --color-brand-strong: var(--brand-strong);
+  --color-brand-soft: var(--brand-soft);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --color-info: var(--info);
+  --color-info-soft: var(--info-soft);
+  --color-on-brand: var(--on-brand);
+  --color-on-accent: var(--on-accent);
+
+  /* Set Plus Jakarta Sans sebagai Font Utama */
+  --font-sans:
+    "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, sans-serif;
+
+  /* Radius Tokens untuk Mobile App Sheet */
+  --radius-sheet: 2.25rem;
+  --radius-card: 1.25rem;
+  --radius-control: 9999px;
+
+  --shadow-card: 0 4px 24px -4px rgb(var(--shadow-tint) / 0.08);
+  --shadow-lift: 0 16px 32px -12px rgb(37 99 235 / 0.25);
+}
+
+* {
+  border-color: var(--line);
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background-color: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: var(--brand);
+  color: var(--on-brand);
+}
+
+:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+@layer components {
+  /* Gradient background khas screen utama dengan muti-stop rendering yang presisi */
+  .bg-app-gradient {
+    background: linear-gradient(
+      180deg,
+      var(--bg-gradient-from) 0%,
+      #3b80f9 35%,
+      #8ab4fc 65%,
+      #dbe8fe 85%,
+      var(--bg-gradient-to) 100%
+    );
+  }
+
+  /* Sheet container putih melengkung di bagian bawah screen */
+  .sheet-bottom {
+    background-color: var(--surface);
+    border-top-left-radius: var(--radius-sheet);
+    border-top-right-radius: var(--radius-sheet);
+  }
+
+  /* Input Pill Field */
+  .input-pill {
+    width: 100%;
+    background-color: var(--surface-2);
+    border-radius: var(--radius-control);
+    padding: 0.75rem 1.25rem;
+    font-size: 0.875rem;
+    color: var(--ink);
+    border: 1px solid transparent;
+    transition: all 0.2s ease;
+  }
+
+  .input-pill:focus {
+    outline: none;
+    border-color: var(--brand);
+    background-color: var(--surface);
+  }
+
+  /* Button Pill */
+  .btn-pill-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    padding: 0.875rem 1.5rem;
+    border-radius: var(--radius-control);
+    background-color: var(--brand);
+    color: var(--on-brand);
+    font-weight: 600;
+    font-size: 0.875rem;
+    transition:
+      background-color 0.2s ease,
+      transform 0.1s ease;
+  }
+
+  .btn-pill-primary:active {
+    transform: scale(0.98);
+  }
+}
