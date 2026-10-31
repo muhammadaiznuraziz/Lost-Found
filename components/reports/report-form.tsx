@@ -14,7 +14,12 @@ import {
   Select,
   Textarea,
 } from "@/components/ui/field";
-import type { CampusLocation, Category, ReportType } from "@/types";
+import type {
+  CampusLocation,
+  Category,
+  ReportType,
+  ReportWithRelations,
+} from "@/types";
 
 function formatDateLabel(value: string) {
   if (!value) return "-";
@@ -31,11 +36,13 @@ export function ReportForm({
   categories,
   locations,
   defaultEmail,
+  referenceReport,
 }: {
   type: ReportType;
   categories: Category[];
   locations: CampusLocation[];
   defaultEmail: string;
+  referenceReport?: ReportWithRelations | null;
 }) {
   const [state, action, pending] = useActionState(createReport, undefined);
   const [step, setStep] = useState<"edit" | "confirm">("edit");
@@ -113,6 +120,12 @@ export function ReportForm({
           <h2 className="text-sm font-semibold uppercase tracking-[0.14em] text-accent">
             Ringkasan laporan {isFound ? "barang temuan" : "barang hilang"}
           </h2>
+
+          {referenceReport ? (
+            <div className="mt-3 rounded-xl border border-brand/30 bg-brand/5 p-3 text-xs sm:text-sm text-brand-strong">
+              Menanggapi Laporan Kehilangan: <strong>{referenceReport.item_name}</strong> ({referenceReport.report_number})
+            </div>
+          ) : null}
 
           <dl className="mt-4 space-y-3 text-sm">
             {[
@@ -222,6 +235,13 @@ export function ReportForm({
       onSubmit={handleSubmit}
     >
       <input type="hidden" name="report_type" value={type} />
+      {referenceReport?.id ? (
+        <input
+          type="hidden"
+          name="reference_report_id"
+          value={referenceReport.id}
+        />
+      ) : null}
 
       {state?.message ? <Alert tone="danger">{state.message}</Alert> : null}
 
@@ -239,7 +259,10 @@ export function ReportForm({
             placeholder={
               isFound ? "Contoh: Dompet kulit hitam" : "Contoh: Earphone putih"
             }
-            defaultValue={state?.values?.item_name}
+            defaultValue={
+              state?.values?.item_name ??
+              (referenceReport ? `Ditemukan: ${referenceReport.item_name}` : "")
+            }
             required
             maxLength={150}
           />
@@ -254,7 +277,10 @@ export function ReportForm({
           <Select
             id="category_id"
             name="category_id"
-            defaultValue={state?.values?.category_id ?? ""}
+            defaultValue={
+              state?.values?.category_id ??
+              (referenceReport ? String(referenceReport.category_id) : "")
+            }
             required
           >
             <option value="">Pilih kategori</option>

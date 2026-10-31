@@ -58,8 +58,7 @@ export default async function AdminClaimDetailPage({
   } = detail;
 
   return (
-    /* Kompensasi pt-24 sm:pt-28 memastikan konten TIDAK TERTUTUP oleh floating navbar */
-    <div className="page-shell max-w-7xl mx-auto px-4 pt-24 sm:pt-28 pb-12 sm:pb-16 space-y-6">
+    <div className="page-shell max-w-7xl mx-auto px-4 pb-12 sm:pb-16 space-y-6">
       {/* Top Navigation */}
       <div>
         <Link

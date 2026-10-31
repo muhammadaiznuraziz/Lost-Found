@@ -81,6 +81,7 @@ export interface ItemReport {
   reviewed_by: string | null;
   reviewed_at: string | null;
   rejection_reason: string | null;
+  reference_report_id?: string | null;
 }
 
 export interface ReportPhoto {
@@ -202,6 +203,11 @@ export interface ReportWithRelations extends ItemReport {
   profiles: Pick<Profile, "id" | "full_name"> | null;
   claims?: Pick<Claim, "id" | "claim_status">[];
   item_report_status?: ItemReportStatusView[];
+  reference_report?: Pick<
+    ItemReport,
+    "id" | "report_number" | "item_name" | "report_type" | "report_status"
+  > | null;
+  referencing_reports?: ReportWithRelations[];
 }
 
 export interface ClaimWithRelations extends Claim {

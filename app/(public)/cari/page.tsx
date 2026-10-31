@@ -67,7 +67,7 @@ export default async function SearchPage({
 
   return (
     <div className="min-h-screen bg-paper font-sans text-ink">
-      <div className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 md:py-10 lg:px-8 mt-5">
+      <div className="mx-auto w-full max-w-7xl px-4 pb-6 sm:px-6 md:pb-10 lg:px-8">
         {/* 2. FLOATING PILL SEARCH BAR (RESPONSIVE WIDTH) */}
         <form
           action="/cari"

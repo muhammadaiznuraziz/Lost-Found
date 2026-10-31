@@ -43,11 +43,22 @@ export default async function NotificationsPage() {
         <div className="overflow-hidden rounded-[var(--radius-card)] border border-line bg-surface shadow-[var(--shadow-card)]">
           <ul className="divide-y divide-line">
             {notifications.map((notification) => {
-              const href = notification.related_claim_id
-                ? `/dashboard/klaim/${notification.related_claim_id}`
-                : notification.related_report_id
-                  ? `/dashboard/laporan/${notification.related_report_id}`
-                  : null;
+              const isAdmin = session.profile?.role === "ADMIN";
+              let href: string | null = null;
+
+              if (notification.related_claim_id) {
+                href = isAdmin
+                  ? `/admin/klaim/${notification.related_claim_id}`
+                  : `/dashboard/klaim/${notification.related_claim_id}`;
+              } else if (notification.related_report_id) {
+                if (notification.notification_type.startsWith("ADMIN_") && isAdmin) {
+                  href = `/admin/laporan/${notification.related_report_id}`;
+                } else if (notification.notification_type === "REFERENCE_FOUND_APPROVED") {
+                  href = `/laporan/${notification.related_report_id}`;
+                } else {
+                  href = `/dashboard/laporan/${notification.related_report_id}`;
+                }
+              }
 
               return (
                 <li

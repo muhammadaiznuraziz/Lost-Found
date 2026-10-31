@@ -3,6 +3,10 @@ import { ArrowUpRight, CalendarDays, MapPin, PackageOpen } from "lucide-react";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { publicPhotoUrl } from "@/lib/supabase/storage";
 import { formatDate } from "@/lib/utils";
+import {
+  ReturnedStampOverlay,
+  isReturnedStatus,
+} from "./returned-stamp";
 import type { ReportWithRelations } from "@/types";
 
 export function ReportCard({ report }: { report: ReportWithRelations }) {
@@ -11,6 +15,7 @@ export function ReportCard({ report }: { report: ReportWithRelations }) {
     report.report_photos?.[0];
   const photoUrl = publicPhotoUrl(photo?.storage_path);
   const displayStatus = report.item_report_status?.[0]?.display_status;
+  const returned = isReturnedStatus(displayStatus);
 
   return (
     <Link
@@ -61,11 +66,17 @@ export function ReportCard({ report }: { report: ReportWithRelations }) {
           <img
             src={photoUrl}
             alt={photo?.alt_text ?? report.item_name}
-            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+            className={`h-full w-full object-cover transition-transform duration-500 group-hover:scale-105 ${
+              returned ? "grayscale opacity-70" : ""
+            }`}
             loading="lazy"
           />
         ) : (
-          <div className="dot-grid flex h-full w-full items-center justify-center">
+          <div
+            className={`dot-grid flex h-full w-full items-center justify-center ${
+              returned ? "opacity-60" : ""
+            }`}
+          >
             <PackageOpen
               className="h-10 w-10 text-muted/60"
               strokeWidth={1.25}
@@ -73,6 +84,9 @@ export function ReportCard({ report }: { report: ReportWithRelations }) {
             />
           </div>
         )}
+
+        {/* Stempel "Sudah Kembali ke Pemilik" untuk barang yang sudah kembali */}
+        {returned && <ReturnedStampOverlay />}
 
         {/* Tombol Floating Action (Detail ↗) */}
         <div className="absolute bottom-3 right-3 flex items-center">

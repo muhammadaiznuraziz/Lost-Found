@@ -19,6 +19,10 @@ import { Avatar } from "@/components/ui/avatar";
 import { buttonVariants } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { StatusBadge } from "@/components/ui/status-badge";
+import {
+  ReturnedStampOverlay,
+  isReturnedStatus,
+} from "@/components/reports/returned-stamp";
 import { Textarea } from "@/components/ui/field";
 import { ReportCard } from "@/components/reports/report-card";
 import { getSessionUser } from "@/lib/auth";
@@ -78,6 +82,7 @@ export default async function ReportDetailPage({
   const photos = report.report_photos;
   const primary = photos.find((photo) => photo.is_primary) ?? photos[0];
   const displayStatus = report.item_report_status?.[0]?.display_status;
+  const returned = isReturnedStatus(displayStatus);
   const claimHref = `/laporan/${report.id}/klaim`;
   const canClaim =
     report.report_type === "FOUND" &&
@@ -85,8 +90,8 @@ export default async function ReportDetailPage({
     !isOwner;
 
   return (
-    /* Kompensasi pt-24 (sm:pt-28) menjamin konten TIDAK TERTUTUP oleh floating navbar */
-    <div className="page-shell max-w-6xl mx-auto px-4 pt-24 sm:pt-28 pb-12 sm:pb-16">
+    /* Offset navbar ditangani pt-24 sm:pt-28 di layout penampung (public) */
+    <div className="page-shell max-w-6xl mx-auto px-4 pb-12 sm:pb-16">
       {/* Breadcrumb Navigation */}
       <nav
         aria-label="Breadcrumb"
@@ -129,7 +134,9 @@ export default async function ReportDetailPage({
                 <img
                   src={publicPhotoUrl(primary.storage_path) ?? ""}
                   alt={primary.alt_text ?? report.item_name}
-                  className="h-full w-full object-cover transition-transform duration-300 hover:scale-105"
+                  className={`h-full w-full object-cover transition-transform duration-300 hover:scale-105 ${
+                    returned ? "grayscale opacity-70" : ""
+                  }`}
                 />
               ) : (
                 <div className="dot-grid flex h-full w-full flex-col items-center justify-center gap-3 text-muted p-6">
@@ -142,6 +149,9 @@ export default async function ReportDetailPage({
                   </p>
                 </div>
               )}
+
+              {/* Stempel "Sudah Kembali ke Pemilik" untuk barang yang sudah kembali */}
+              {returned && <ReturnedStampOverlay />}
 
               {/* Status Overlay Badges */}
               <div className="absolute left-3 top-3 sm:left-4 sm:top-4 flex flex-wrap gap-2">
@@ -165,9 +175,12 @@ export default async function ReportDetailPage({
                     <img
                       src={publicPhotoUrl(photo.storage_path) ?? ""}
                       alt={photo.alt_text ?? report.item_name}
-                      className="h-full w-full object-cover transition-opacity hover:opacity-90"
+                      className={`h-full w-full object-cover transition-opacity hover:opacity-90 ${
+                        returned ? "grayscale opacity-70" : ""
+                      }`}
                       loading="lazy"
                     />
+                    {returned && <ReturnedStampOverlay compact />}
                   </div>
                 ))}
               </div>
@@ -190,6 +203,49 @@ export default async function ReportDetailPage({
                 </span>
               </p>
             </div>
+
+            {/* Reference Report Banner if this is a found item referencing a lost item */}
+            {report.reference_report && (
+              <div className="mt-4 rounded-xl border border-brand/30 bg-brand/5 p-3.5 text-xs sm:text-sm text-ink-soft flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2 min-w-0">
+                  <Sparkles className="h-4 w-4 shrink-0 text-brand" />
+                  <span className="truncate">
+                    Menanggapi laporan kehilangan: <strong>{report.reference_report.item_name}</strong> ({report.reference_report.report_number})
+                  </span>
+                </div>
+                <Link
+                  href={`/laporan/${report.reference_report.id}`}
+                  className="shrink-0 font-semibold text-brand hover:underline"
+                >
+                  Lihat Barang Hilang &rarr;
+                </Link>
+              </div>
+            )}
+
+            {/* Referencing Reports Banner if someone reported finding this lost item */}
+            {report.referencing_reports && report.referencing_reports.length > 0 && (
+              <div className="mt-4 rounded-xl border border-accent/30 bg-accent/5 p-3.5 text-xs sm:text-sm text-ink-soft">
+                <div className="flex items-center gap-2 font-semibold text-ink">
+                  <Sparkles className="h-4 w-4 text-accent" />
+                  <span>Kabar Baik: Ada laporan penemuan terkait barang ini!</span>
+                </div>
+                <ul className="mt-2 space-y-1.5 pl-6 list-disc">
+                  {report.referencing_reports.map((ref) => (
+                    <li key={ref.id}>
+                      <Link
+                        href={`/laporan/${ref.id}`}
+                        className="font-medium text-brand hover:underline"
+                      >
+                        {ref.report_number} - {ref.item_name}
+                      </Link>{" "}
+                      <span className="text-muted text-xs">
+                        ({ref.report_status === "ACTIVE" ? "Terverifikasi" : "Menunggu Verifikasi"})
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
 
             {/* Key Metrics */}
             <dl className="mt-6 grid gap-3 sm:grid-cols-2">
@@ -352,7 +408,7 @@ export default async function ReportDetailPage({
               {report.report_type === "LOST" &&
                 report.report_status === "ACTIVE" && (
                   <Link
-                    href="/laporkan?type=FOUND"
+                    href={`/laporkan/baru?type=FOUND&ref_report_id=${report.id}`}
                     className={buttonVariants({
                       variant: "secondary",
                       className:

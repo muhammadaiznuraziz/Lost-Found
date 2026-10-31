@@ -8,6 +8,7 @@ import {
   MapPin,
   PackageOpen,
   Pencil,
+  Sparkles,
   XCircle,
 } from "lucide-react";
 import { cancelReportAction } from "@/app/actions/dashboard";
@@ -15,6 +16,10 @@ import { Alert } from "@/components/ui/alert";
 import { buttonVariants } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { StatusBadge } from "@/components/ui/status-badge";
+import {
+  ReturnedStampOverlay,
+  isReturnedStatus,
+} from "@/components/reports/returned-stamp";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { requireUser } from "@/lib/auth";
 import { CONTACT_PREFERENCE } from "@/lib/constants";
@@ -69,6 +74,7 @@ export default async function MyReportDetailPage({
   );
   const canCancel = editable && activeClaims.length === 0;
   const displayStatus = report.item_report_status?.[0]?.display_status;
+  const returned = isReturnedStatus(displayStatus);
   const primary =
     report.report_photos.find((photo) => photo.is_primary) ??
     report.report_photos[0];
@@ -114,9 +120,18 @@ export default async function MyReportDetailPage({
       />
 
       {query.baru ? (
-        <Alert tone="success" title="Laporan berhasil dikirim">
-          Nomor laporan <strong>{report.report_number}</strong>. Laporan akan
-          tayang setelah diverifikasi admin.
+        <Alert tone="success" title="Laporan Berhasil Dikirim">
+          {report.reference_report ? (
+            <>
+              Nomor laporan <strong>{report.report_number}</strong>. Notifikasi penemuan telah <strong>langsung dikirimkan</strong> ke pemilik laporan kehilangan (
+              <strong>{report.reference_report.item_name}</strong>) dan admin kampus! Laporan temuan ini juga akan ditayangkan di pencarian publik setelah ditinjau admin.
+            </>
+          ) : (
+            <>
+              Nomor laporan <strong>{report.report_number}</strong>. Laporan akan
+              tayang setelah diverifikasi admin.
+            </>
+          )}
         </Alert>
       ) : null}
       {query.diperbarui ? (
@@ -142,19 +157,22 @@ export default async function MyReportDetailPage({
       <div className="grid gap-5 lg:grid-cols-[1.1fr_0.9fr] lg:items-start">
         <div className="space-y-5">
           <Card className="overflow-hidden">
-            <div className="aspect-[16/9] bg-surface-2">
+            <div className="relative aspect-[16/9] bg-surface-2">
               {primary ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={publicPhotoUrl(primary.storage_path) ?? ""}
                   alt={primary.alt_text ?? report.item_name}
-                  className="h-full w-full object-cover"
+                  className={`h-full w-full object-cover ${
+                    returned ? "grayscale opacity-70" : ""
+                  }`}
                 />
               ) : (
                 <div className="dot-grid flex h-full w-full items-center justify-center text-muted">
                   <PackageOpen className="h-10 w-10" aria-hidden />
                 </div>
               )}
+              {returned && <ReturnedStampOverlay />}
             </div>
             <div className="space-y-3 p-5">
               <div className="flex flex-wrap gap-2">
@@ -235,6 +253,65 @@ export default async function MyReportDetailPage({
               </p>
             )}
           </Card>
+
+          {report.reference_report ? (
+            <Card className="p-5 border-brand/30 bg-brand/5">
+              <h2 className="text-sm font-semibold text-brand flex items-center gap-2">
+                <Sparkles className="h-4 w-4" aria-hidden />
+                Menanggapi Laporan Kehilangan
+              </h2>
+              <p className="mt-1.5 text-sm text-ink leading-relaxed">
+                Laporan temuan ini merujuk ke laporan kehilangan:{" "}
+                <strong>{report.reference_report.item_name}</strong> (
+                {report.reference_report.report_number})
+              </p>
+              <div className="mt-3">
+                <Link
+                  href={`/laporan/${report.reference_report.id}`}
+                  className={buttonVariants({ variant: "secondary", size: "sm" })}
+                >
+                  Lihat Barang Hilang
+                </Link>
+              </div>
+            </Card>
+          ) : null}
+
+          {report.referencing_reports && report.referencing_reports.length > 0 ? (
+            <Card className="p-5 border-accent/40 bg-accent/5">
+              <h2 className="text-sm font-semibold text-ink flex items-center gap-2">
+                <Sparkles className="h-4 w-4 text-accent" aria-hidden />
+                Laporan Penemuan Terkait ({report.referencing_reports.length})
+              </h2>
+              <p className="mt-1 text-xs text-muted">
+                Ada laporan penemuan yang merujuk pada kehilangan barang ini:
+              </p>
+              <ul className="mt-3 divide-y divide-line">
+                {report.referencing_reports.map((ref) => (
+                  <li
+                    key={ref.id}
+                    className="flex items-center justify-between gap-2 py-2.5"
+                  >
+                    <div>
+                      <Link
+                        href={ref.report_status === "ACTIVE" ? `/laporan/${ref.id}` : "#"}
+                        className={`text-sm font-medium ${
+                          ref.report_status === "ACTIVE"
+                            ? "text-brand hover:underline"
+                            : "text-ink"
+                        }`}
+                      >
+                        {ref.report_number} - {ref.item_name}
+                      </Link>
+                      <p className="text-xs text-muted">
+                        {formatDateTime(ref.created_at)}
+                      </p>
+                    </div>
+                    <StatusBadge kind="report" status={ref.report_status} />
+                  </li>
+                ))}
+              </ul>
+            </Card>
+          ) : null}
 
           <Card className="p-5">
             <h2 className="text-sm font-semibold text-ink">

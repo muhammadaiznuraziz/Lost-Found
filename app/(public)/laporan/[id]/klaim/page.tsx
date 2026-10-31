@@ -46,8 +46,8 @@ export default async function ClaimPage({ params }: PageProps) {
   const primaryPhoto = photos.find((p) => p.is_primary) ?? photos[0];
 
   return (
-    /* Kompensasi pt-24 sm:pt-28 memastikan konten TIDAK TERTUTUP oleh floating navbar */
-    <div className="page-shell max-w-2xl mx-auto px-4 pt-24 sm:pt-28 pb-12 sm:pb-16 space-y-5 sm:space-y-6">
+    /* Offset navbar ditangani pt-24 sm:pt-28 di layout penampung (public) */
+    <div className="page-shell max-w-2xl mx-auto px-4 pb-12 sm:pb-16 space-y-5 sm:space-y-6">
       {/* Top Back Navigation */}
       <div>
         <Link

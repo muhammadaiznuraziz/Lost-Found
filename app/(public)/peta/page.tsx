@@ -26,7 +26,7 @@ export default async function CampusMapPage() {
   );
 
   return (
-    <div className="mx-auto max-w-2xl lg:max-w-4xl xl:max-w-5xl px-4 py-6 sm:py-10 space-y-6 mt-13">
+    <div className="mx-auto max-w-2xl lg:max-w-4xl xl:max-w-5xl px-4 pb-6 sm:pb-10 space-y-6">
       {/* 1. Header / Top Navigation Bar */}
       <header className="flex items-center justify-between pb-2">
         <div>

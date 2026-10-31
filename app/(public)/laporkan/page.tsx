@@ -18,7 +18,7 @@ export const metadata: Metadata = {
 
 export default function ReportChoicePage() {
   return (
-    <div className="page-shell max-w-5xl mx-auto px-4 py-8 sm:px-6 lg:py-12">
+    <div className="page-shell max-w-5xl mx-auto px-4 pb-8 sm:px-6 lg:pb-12">
       {/* Header Section */}
       <header className="max-w-xl">
         <h1 className="mt-5 text-2xl font-bold tracking-tight text-ink sm:text-3xl md:text-4xl">

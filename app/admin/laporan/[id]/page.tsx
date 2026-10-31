@@ -90,6 +90,42 @@ export default async function AdminReportDetailPage({
         </Alert>
       ) : null}
 
+      {report.reference_report ? (
+        <Alert tone="info" title="Laporan Merujuk Barang Hilang">
+          Laporan temuan ini merujuk ke laporan kehilangan:{" "}
+          <strong>{report.reference_report.item_name}</strong> (
+          {report.reference_report.report_number}).{" "}
+          <Link
+            href={`/admin/laporan/${report.reference_report.id}`}
+            className="underline font-semibold"
+          >
+            Buka Laporan Kehilangan Terkait &rarr;
+          </Link>
+        </Alert>
+      ) : null}
+
+      {report.referencing_reports && report.referencing_reports.length > 0 ? (
+        <Alert
+          tone="info"
+          title={`Ada ${report.referencing_reports.length} Laporan Penemuan Terkait`}
+        >
+          Laporan kehilangan ini memiliki laporan temuan yang merujuk:
+          <ul className="mt-2 list-disc pl-5 space-y-1">
+            {report.referencing_reports.map((ref) => (
+              <li key={ref.id}>
+                <Link
+                  href={`/admin/laporan/${ref.id}`}
+                  className="underline font-semibold"
+                >
+                  {ref.report_number} - {ref.item_name}
+                </Link>{" "}
+                (Status: {ref.report_status})
+              </li>
+            ))}
+          </ul>
+        </Alert>
+      ) : null}
+
       <div className="grid gap-5 lg:grid-cols-[1.15fr_0.85fr] lg:items-start">
         <div className="space-y-5">
           <Card className="overflow-hidden">

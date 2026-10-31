@@ -41,6 +41,7 @@ export const reportSchema = z
       message: "Pilih preferensi kontak.",
     }),
     contact_value: z.string().trim().max(120).optional(),
+    reference_report_id: z.string().trim().optional(),
   })
   .superRefine((data, ctx) => {
     if (data.report_type === "FOUND" && !data.dropoff_location_id) {

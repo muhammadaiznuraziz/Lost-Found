@@ -5,10 +5,11 @@ import { ChevronLeft, Info, PackageSearch, Sparkles } from "lucide-react";
 import { ReportForm } from "@/components/reports/report-form";
 import { requireUser } from "@/lib/auth";
 import { getCategories, getLocations } from "@/lib/data/reference";
+import { getReportById } from "@/lib/data/reports";
 import type { ReportType } from "@/types";
 
 type Props = {
-  searchParams: Promise<{ type?: string }>;
+  searchParams: Promise<{ type?: string; ref_report_id?: string }>;
 };
 
 // Metadata Dinamis untuk Tab Browser & SEO Internal
@@ -38,16 +39,21 @@ export default async function NewReportPage({ searchParams }: Props) {
 
   if (!type) redirect("/laporkan");
 
-  const session = await requireUser(`/laporkan/baru?type=${type}`);
-  const [categories, locations] = await Promise.all([
+  const session = await requireUser(
+    params.ref_report_id
+      ? `/laporkan/baru?type=${type}&ref_report_id=${params.ref_report_id}`
+      : `/laporkan/baru?type=${type}`,
+  );
+  const [categories, locations, referenceReport] = await Promise.all([
     getCategories(),
     getLocations(),
+    params.ref_report_id ? getReportById(params.ref_report_id) : Promise.resolve(null),
   ]);
 
   const isFound = type === "FOUND";
 
   return (
-    <div className="page-shell max-w-3xl mx-auto px-4 py-6 sm:px-6 sm:py-10 lg:py-12 mt-5">
+    <div className="page-shell max-w-3xl mx-auto px-4 pb-6 sm:px-6 sm:pb-10 lg:pb-12">
       {/* Back Navigation Bar */}
       <div className="flex items-center justify-between">
         <Link
@@ -94,6 +100,23 @@ export default async function NewReportPage({ searchParams }: Props) {
         </p>
       </header>
 
+      {/* Reference Report Context Banner */}
+      {referenceReport && (
+        <div className="mt-6 rounded-2xl border border-brand/30 bg-brand/5 p-4 sm:p-5 text-sm">
+          <div className="flex items-center gap-2 font-bold text-brand">
+            <Sparkles className="h-5 w-5" aria-hidden="true" />
+            <span>Menanggapi Laporan Barang Hilang</span>
+          </div>
+          <p className="mt-2 text-ink">
+            Kamu sedang melaporkan penemuan yang merespons laporan kehilangan:{" "}
+            <strong>{referenceReport.item_name}</strong> ({referenceReport.report_number}).
+          </p>
+          <p className="mt-1 text-xs text-muted">
+            Laporan temuan ini akan otomatis terhubung. Pemilik barang hilang dan admin kampus akan menerima notifikasi setelah kamu mengirim formulir ini.
+          </p>
+        </div>
+      )}
+
       {/* Contextual Warning/Tip Banner */}
       <div
         className={`mt-6 flex items-start gap-3 rounded-xl p-4 border text-xs sm:text-sm leading-relaxed ${
@@ -125,6 +148,7 @@ export default async function NewReportPage({ searchParams }: Props) {
           categories={categories}
           locations={locations}
           defaultEmail={session.profile?.email ?? session.authUser.email ?? ""}
+          referenceReport={referenceReport}
         />
       </main>
     </div>

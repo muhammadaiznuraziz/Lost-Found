@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { requireAdmin } from "@/lib/auth";
 
@@ -43,12 +44,45 @@ export async function reviewReportAction(formData: FormData) {
     p_reason: reason || null,
   });
 
+  if (status === "ACTIVE") {
+    try {
+      const adminClient = createAdminClient();
+      const { data: currentReport } = await adminClient
+        .from("item_reports")
+        .select("id, report_number, item_name, reference_report_id")
+        .eq("id", reportId)
+        .maybeSingle();
+
+      if (currentReport?.reference_report_id) {
+        const { data: refReport } = await adminClient
+          .from("item_reports")
+          .select("id, user_id, item_name, report_number")
+          .eq("id", currentReport.reference_report_id)
+          .maybeSingle();
+
+        if (refReport) {
+          await adminClient.from("notifications").insert({
+            user_id: refReport.user_id,
+            title: "Laporan Temuan Telah Diverifikasi",
+            message: `Laporan penemuan (${currentReport.report_number}) yang merujuk pada kehilangan Anda (${refReport.report_number} - ${refReport.item_name}) telah disetujui & dipublikasikan oleh Admin. Anda dapat memeriksa barang temuan tersebut.`,
+            notification_type: "REFERENCE_FOUND_APPROVED",
+            related_report_id: currentReport.id,
+          });
+        }
+      }
+    } catch {
+      // Abaikan jika sudah ditangani oleh trigger
+    }
+  }
+
   revalidatePath("/admin");
   revalidatePath("/admin/laporan");
   revalidatePath(`/admin/laporan/${reportId}`);
   revalidatePath("/cari");
   revalidatePath("/");
   revalidatePath(`/laporan/${reportId}`);
+  revalidatePath("/dashboard/notifikasi");
+  revalidatePath("/dashboard");
 
   if (error) {
     redirect(withMessage(`/admin/laporan/${reportId}`, "error", error.message));

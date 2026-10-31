@@ -93,7 +93,7 @@ export default async function HomePage() {
   ];
 
   return (
-    <div className="mx-auto w-full max-w-7xl px-4 pb-14 pt-6 sm:px-6 md:pt-19 lg:px-8">
+    <div className="mx-auto w-full max-w-7xl px-4 pb-14 sm:px-6 lg:px-8">
       {/* 1. HERO */}
       <section className="relative overflow-hidden rounded-[2.5rem] border border-line bg-gradient-to-b from-brand-soft/30 via-surface to-surface p-6 shadow-sm sm:p-10">
         <div className="max-w-3xl space-y-4">

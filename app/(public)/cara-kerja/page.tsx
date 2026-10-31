@@ -45,7 +45,7 @@ const claimStatuses = [
 
 export default function HowItWorksPage() {
   return (
-    <div className="mx-auto max-w-5xl px-4 py-8 sm:py-12 mt-13 space-y-12">
+    <div className="mx-auto max-w-5xl px-4 pb-8 sm:pb-12 space-y-12">
       {/* 1. HERO HEADER */}
       <header className="relative overflow-hidden rounded-[28px] border border-line bg-gradient-to-b from-brand-soft/30 via-surface to-surface p-6 sm:p-10 shadow-sm">
         <div className="max-w-2xl space-y-3">

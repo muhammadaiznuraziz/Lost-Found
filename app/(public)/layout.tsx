@@ -6,7 +6,8 @@ export default function PublicLayout({ children }: { children: ReactNode }) {
   return (
     <>
       <SiteHeader />
-      <main className="flex flex-1 flex-col">{children}</main>
+      {/* pt-24 sm:pt-28 menjamin konten tidak tertutup floating navbar (top-4 + h-12 = 64px) di mobile, tablet, dan desktop */}
+      <main className="flex flex-1 flex-col pt-24 sm:pt-28">{children}</main>
       <SiteFooter />
     </>
   );

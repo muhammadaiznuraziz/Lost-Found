@@ -1,7 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { ChevronDown, LayoutDashboard, LogOut, ShieldCheck, User } from "lucide-react";
+import {
+  Bell,
+  ChevronDown,
+  LayoutDashboard,
+  LogOut,
+  ShieldCheck,
+  User,
+} from "lucide-react";
 import { Avatar } from "@/components/ui/avatar";
 import { logout } from "@/app/actions/auth";
 
@@ -40,6 +47,13 @@ export function UserMenu({
           >
             <LayoutDashboard className="h-4 w-4" aria-hidden />
             Dashboard Saya
+          </Link>
+          <Link
+            href="/dashboard/notifikasi"
+            className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-ink-soft hover:bg-surface-2 hover:text-ink"
+          >
+            <Bell className="h-4 w-4" aria-hidden />
+            Notifikasi
           </Link>
           <Link
             href="/dashboard/profil"

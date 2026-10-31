@@ -183,16 +183,55 @@ export async function getReportById(
   if (!isSupabaseConfigured) return null;
 
   const supabase = await createClient();
-  const { data } = await supabase
+  let queryResult = await supabase
     .from("item_reports")
-    .select(REPORT_COLUMNS)
+    .select(`${REPORT_COLUMNS}, reference_report_id`)
     .eq("id", id)
     .maybeSingle();
 
+  if (queryResult.error && queryResult.error.code === "42703") {
+    queryResult = await supabase
+      .from("item_reports")
+      .select(REPORT_COLUMNS)
+      .eq("id", id)
+      .maybeSingle();
+  }
+
+  const data = queryResult.data;
   if (!data) return null;
 
   const [report] = await hydrateReports([data as unknown as ItemReport]);
-  return report ?? null;
+  if (!report) return null;
+
+  // Jika laporan ini merujuk ke laporan lain
+  if (report.reference_report_id) {
+    const { data: refData } = await supabase
+      .from("item_reports")
+      .select("id, report_number, item_name, report_type, report_status")
+      .eq("id", report.reference_report_id)
+      .maybeSingle();
+    if (refData) {
+      report.reference_report = refData;
+    }
+  }
+
+  // Periksa apakah ada laporan temuan yang merujuk ke laporan ini
+  try {
+    const { data: referencingData, error: refErr } = await supabase
+      .from("item_reports")
+      .select(REPORT_COLUMNS)
+      .eq("reference_report_id", report.id);
+
+    if (!refErr && referencingData && referencingData.length > 0) {
+      report.referencing_reports = await hydrateReports(
+        referencingData as unknown as ItemReport[],
+      );
+    }
+  } catch {
+    // Abaikan jika kolom belum dimigrasi di database
+  }
+
+  return report;
 }
 
 export async function getReportsByIds(ids: string[]) {
