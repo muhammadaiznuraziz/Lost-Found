@@ -141,13 +141,14 @@ export interface ClaimStatusHistory {
 export interface Handover {
   id: string;
   item_report_id: string;
-  claim_id: string;
+  claim_id: string | null;
   handled_by: string | null;
   handover_location: string;
   handover_status: HandoverStatus;
   scheduled_at: string | null;
   completed_at: string | null;
   confirmation_notes: string | null;
+  received_by: string | null;
   created_at: string;
 }
 
@@ -205,7 +206,12 @@ export interface ReportWithRelations extends ItemReport {
   item_report_status?: ItemReportStatusView[];
   reference_report?: Pick<
     ItemReport,
-    "id" | "report_number" | "item_name" | "report_type" | "report_status"
+    | "id"
+    | "report_number"
+    | "item_name"
+    | "report_type"
+    | "report_status"
+    | "user_id"
   > | null;
   referencing_reports?: ReportWithRelations[];
 }

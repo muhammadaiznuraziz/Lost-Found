@@ -85,8 +85,8 @@ export default async function AdminHandoversPage({
                   </p>
                   <p className="mt-0.5 text-xs text-muted">
                     {report?.report_number ?? "-"} ·{" "}
-                    {claim?.claim_number ?? "Klaim"} ·{" "}
-                    {claimant?.full_name ?? "Pengguna"}
+                    {claim?.claim_number ?? "Serah terima luar aplikasi"} ·{" "}
+                    {claimant?.full_name ?? handover.received_by ?? "Pengguna"}
                   </p>
                 </div>
                 <StatusBadge
@@ -124,7 +124,7 @@ export default async function AdminHandoversPage({
                   <input
                     type="hidden"
                     name="claim_id"
-                    value={handover.claim_id}
+                    value={handover.claim_id ?? ""}
                   />
                   <Input
                     name="notes"

@@ -206,7 +206,13 @@ export async function getAdminHandovers(filters: {
   const handovers = (data as Handover[] | null) ?? [];
 
   const reportIds = [...new Set(handovers.map((item) => item.item_report_id))];
-  const claimIds = [...new Set(handovers.map((item) => item.claim_id))];
+  const claimIds = [
+    ...new Set(
+      handovers
+        .map((item) => item.claim_id)
+        .filter((id): id is string => Boolean(id)),
+    ),
+  ];
 
   const [reports, claimsResult] = await Promise.all([
     getReportsByIds(reportIds),
@@ -240,7 +246,9 @@ export async function getAdminHandovers(filters: {
   );
 
   return handovers.map((handover) => {
-    const claim = claimMap.get(handover.claim_id) ?? null;
+    const claim = handover.claim_id
+      ? (claimMap.get(handover.claim_id) ?? null)
+      : null;
     return {
       handover,
       report: reportMap.get(handover.item_report_id) ?? null,

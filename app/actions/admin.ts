@@ -3,7 +3,6 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
-import { createAdminClient } from "@/lib/supabase/admin";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { requireAdmin } from "@/lib/auth";
 
@@ -44,36 +43,10 @@ export async function reviewReportAction(formData: FormData) {
     p_reason: reason || null,
   });
 
-  if (status === "ACTIVE") {
-    try {
-      const adminClient = createAdminClient();
-      const { data: currentReport } = await adminClient
-        .from("item_reports")
-        .select("id, report_number, item_name, reference_report_id")
-        .eq("id", reportId)
-        .maybeSingle();
-
-      if (currentReport?.reference_report_id) {
-        const { data: refReport } = await adminClient
-          .from("item_reports")
-          .select("id, user_id, item_name, report_number")
-          .eq("id", currentReport.reference_report_id)
-          .maybeSingle();
-
-        if (refReport) {
-          await adminClient.from("notifications").insert({
-            user_id: refReport.user_id,
-            title: "Laporan Temuan Telah Diverifikasi",
-            message: `Laporan penemuan (${currentReport.report_number}) yang merujuk pada kehilangan Anda (${refReport.report_number} - ${refReport.item_name}) telah disetujui & dipublikasikan oleh Admin. Anda dapat memeriksa barang temuan tersebut.`,
-            notification_type: "REFERENCE_FOUND_APPROVED",
-            related_report_id: currentReport.id,
-          });
-        }
-      }
-    } catch {
-      // Abaikan jika sudah ditangani oleh trigger
-    }
-  }
+  // Notifikasi status laporan (termasuk REFERENCE_FOUND_APPROVED untuk pemilik
+  // laporan kehilangan terkait) dibuat di dalam RPC review_report() melalui
+  // trigger/function DB. Tidak diduplikasi di sini agar tidak dobel dan agar
+  // notifikasi tidak terkirim ketika RPC gagal.
 
   revalidatePath("/admin");
   revalidatePath("/admin/laporan");
@@ -234,6 +207,67 @@ export async function completeHandoverAction(formData: FormData) {
       "/admin/pengembalian",
       "message",
       "Penyerahan berhasil dikonfirmasi.",
+    ),
+  );
+}
+
+export async function completeOfflineHandoverAction(formData: FormData) {
+  await requireAdmin();
+  const reportId = String(formData.get("report_id") ?? "");
+  const receivedBy = String(formData.get("received_by") ?? "").trim();
+  const handedAtRaw = String(formData.get("handed_at") ?? "").trim();
+  const notes = String(formData.get("notes") ?? "").trim();
+  const backTo = `/admin/laporan/${reportId}`;
+
+  if (!reportId) redirect("/admin/laporan");
+
+  if (!isSupabaseConfigured) {
+    redirect(withMessage(backTo, "error", "Supabase belum dikonfigurasi."));
+  }
+
+  if (!receivedBy) {
+    redirect(withMessage(backTo, "error", "Nama penerima wajib diisi."));
+  }
+
+  let handedAt = new Date();
+  if (handedAtRaw) {
+    const parsed = new Date(handedAtRaw);
+    if (Number.isNaN(parsed.getTime())) {
+      redirect(withMessage(backTo, "error", "Tanggal penyerahan tidak valid."));
+    }
+    handedAt = parsed;
+  }
+
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("complete_offline_handover", {
+    p_report_id: reportId,
+    p_received_by: receivedBy,
+    p_handed_at: handedAt.toISOString(),
+    p_notes: notes || null,
+  });
+
+  revalidatePath("/admin");
+  revalidatePath("/admin/laporan");
+  revalidatePath(backTo);
+  revalidatePath("/admin/pengembalian");
+  revalidatePath("/admin/klaim");
+  revalidatePath("/dashboard");
+  revalidatePath("/dashboard/laporan");
+  revalidatePath("/dashboard/klaim");
+  revalidatePath("/dashboard/notifikasi");
+  revalidatePath("/");
+  revalidatePath("/cari");
+  revalidatePath(`/laporan/${reportId}`);
+
+  if (error) {
+    redirect(withMessage(backTo, "error", error.message));
+  }
+
+  redirect(
+    withMessage(
+      backTo,
+      "message",
+      "Serah terima di luar aplikasi dicatat. Laporan temuan dan laporan kehilangan terkait telah ditutup.",
     ),
   );
 }

@@ -53,7 +53,12 @@ export default async function NotificationsPage() {
               } else if (notification.related_report_id) {
                 if (notification.notification_type.startsWith("ADMIN_") && isAdmin) {
                   href = `/admin/laporan/${notification.related_report_id}`;
-                } else if (notification.notification_type === "REFERENCE_FOUND_APPROVED") {
+                } else if (
+                  notification.notification_type.startsWith("REFERENCE_")
+                ) {
+                  // Notifikasi yang merujuk laporan penemuan: pemilik laporan
+                  // kehilangan boleh membuka laporan (termasuk PENDING) lewat
+                  // policy RLS 0011/0012.
                   href = `/laporan/${notification.related_report_id}`;
                 } else {
                   href = `/dashboard/laporan/${notification.related_report_id}`;

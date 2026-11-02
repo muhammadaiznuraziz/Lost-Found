@@ -11,6 +11,7 @@ import {
   PackageOpen,
   ShieldAlert,
   ShieldCheck,
+  Sparkles,
   UserRound,
 } from "lucide-react";
 import { flagReport } from "@/app/actions/reports";
@@ -71,12 +72,15 @@ export default async function ReportDetailPage({
   const profile = session?.profile;
   const isOwner = profile?.id === report.user_id;
   const isAdmin = profile?.role === "ADMIN";
+  const isReferencedOwner =
+    Boolean(profile) && report.reference_report?.user_id === profile?.id;
   const canSeePrivate = isOwner || isAdmin;
+  const canSeeContact = canSeePrivate || isReferencedOwner;
 
   const [related, claims, contact] = await Promise.all([
     getRelatedReports(report, 3),
     canSeePrivate ? getReportClaims(report.id) : Promise.resolve([]),
-    canSeePrivate ? getOwnReportContact(report.id) : Promise.resolve(null),
+    canSeeContact ? getOwnReportContact(report.id) : Promise.resolve(null),
   ]);
 
   const photos = report.report_photos;
@@ -119,6 +123,14 @@ export default async function ReportDetailPage({
       {query.error && (
         <Alert tone="danger" className="mb-6">
           {query.error}
+        </Alert>
+      )}
+
+      {report.report_status !== "ACTIVE" && (
+        <Alert tone="warning" className="mb-6">
+          <strong>Laporan belum terverifikasi admin.</strong> Halaman ini hanya
+          dapat dilihat oleh pelapor, admin, dan pemilik laporan kehilangan yang
+          terkait. Laporan akan tampil untuk publik setelah disetujui.
         </Alert>
       )}
 
@@ -437,12 +449,14 @@ export default async function ReportDetailPage({
             </div>
           </Card>
 
-          {/* Private Contact Box (Owner / Admin Only) */}
-          {canSeePrivate && contact?.contact_value && (
+          {/* Private Contact Box (Owner / Admin / Referenced Lost-Report Owner) */}
+          {canSeeContact &&
+            contact?.contact_value &&
+            contact.contact_preference !== "NONE" && (
             <Card className="p-5 border-line bg-surface shadow-sm rounded-2xl">
               <div className="flex items-center gap-2 text-sm font-bold text-ink">
                 <UserRound className="h-4 w-4 text-accent" aria-hidden="true" />
-                Kontak Privat
+                {canSeePrivate ? "Kontak Privat" : "Kontak Penemu"}
               </div>
               <p className="mt-2 text-xs sm:text-sm text-ink-soft leading-relaxed">
                 {CONTACT_PREFERENCE[contact.contact_preference] ??
@@ -453,7 +467,9 @@ export default async function ReportDetailPage({
                 </span>
               </p>
               <p className="mt-2 text-xs text-muted">
-                Hanya terjangkau oleh pelapor dan admin kampus.
+                {canSeePrivate
+                  ? "Hanya terjangkau oleh pelapor dan admin kampus."
+                  : "Kontak ini dibagikan karena laporan penemuan merujuk pada laporan kehilanganmu. Laporan masih menunggu verifikasi admin."}
               </p>
             </Card>
           )}

@@ -293,12 +293,8 @@ export default async function MyReportDetailPage({
                   >
                     <div>
                       <Link
-                        href={ref.report_status === "ACTIVE" ? `/laporan/${ref.id}` : "#"}
-                        className={`text-sm font-medium ${
-                          ref.report_status === "ACTIVE"
-                            ? "text-brand hover:underline"
-                            : "text-ink"
-                        }`}
+                        href={`/laporan/${ref.id}`}
+                        className="text-sm font-medium text-brand hover:underline"
                       >
                         {ref.report_number} - {ref.item_name}
                       </Link>

@@ -3,7 +3,6 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
-import { createAdminClient } from "@/lib/supabase/admin";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { requireUser } from "@/lib/auth";
 import {
@@ -70,8 +69,7 @@ export async function createReport(
     description_public: String(formData.get("description_public") ?? ""),
     contact_preference: String(formData.get("contact_preference") ?? "EMAIL"),
     contact_value: String(formData.get("contact_value") ?? ""),
-    reference_report_id:
-      String(formData.get("reference_report_id") ?? "").trim() || undefined,
+    reference_report_id: String(formData.get("reference_report_id") ?? "").trim(),
   };
 
   const parsed = reportSchema.safeParse(values);
@@ -192,47 +190,9 @@ export async function createReport(
     }
   }
 
-  if (parsed.data.reference_report_id) {
-    try {
-      const adminClient = createAdminClient();
-      const { data: refReport } = await adminClient
-        .from("item_reports")
-        .select("id, user_id, item_name, report_number")
-        .eq("id", parsed.data.reference_report_id)
-        .maybeSingle();
-
-      if (refReport) {
-        // Kirim notifikasi langsung ke pemilik laporan kehilangan (Aiz)
-        await adminClient.from("notifications").insert({
-          user_id: refReport.user_id,
-          title: "Kabar Penemuan Barang Hilang",
-          message: `Seseorang telah melaporkan penemuan yang merujuk pada laporan kehilangan Anda (${refReport.report_number} - ${refReport.item_name}). Laporan sedang dalam proses verifikasi admin.`,
-          notification_type: "REFERENCE_FOUND_SUBMITTED",
-          related_report_id: refReport.id,
-        });
-
-        // Kirim notifikasi ke Admin
-        const { data: admins } = await adminClient
-          .from("profiles")
-          .select("id")
-          .eq("role", "ADMIN");
-
-        if (admins && admins.length > 0) {
-          await adminClient.from("notifications").insert(
-            admins.map((adm) => ({
-              user_id: adm.id,
-              title: "Laporan Temuan Baru Merujuk Kehilangan",
-              message: `Laporan temuan baru ${created.report_number} merujuk pada laporan kehilangan ${refReport.report_number} (${refReport.item_name}).`,
-              notification_type: "ADMIN_REFERENCE_FOUND",
-              related_report_id: created.id,
-            })),
-          );
-        }
-      }
-    } catch (notifError) {
-      console.error("Gagal mengirim notifikasi langsung via admin client:", notifError);
-    }
-  }
+  // Notifikasi konfirmasi, notifikasi ke pemilik laporan kehilangan, dan
+  // notifikasi admin dibuat oleh trigger DB log_report_created() (migration 0010/0011).
+  // Jangan diduplikasi di sini agar pengguna tidak menerima notifikasi ganda.
 
   revalidatePath("/");
   revalidatePath("/cari");

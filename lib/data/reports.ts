@@ -207,7 +207,7 @@ export async function getReportById(
   if (report.reference_report_id) {
     const { data: refData } = await supabase
       .from("item_reports")
-      .select("id, report_number, item_name, report_type, report_status")
+      .select("id, report_number, item_name, report_type, report_status, user_id")
       .eq("id", report.reference_report_id)
       .maybeSingle();
     if (refData) {

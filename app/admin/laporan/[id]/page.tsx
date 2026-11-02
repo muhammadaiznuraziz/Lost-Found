@@ -4,17 +4,21 @@ import { notFound } from "next/navigation";
 import {
   ArrowLeft,
   CalendarDays,
+  Handshake,
   MapPin,
   MessageCircle,
   ShieldAlert,
   Tag,
   User,
 } from "lucide-react";
-import { reviewReportAction } from "@/app/actions/admin";
+import {
+  completeOfflineHandoverAction,
+  reviewReportAction,
+} from "@/app/actions/admin";
 import { Alert } from "@/components/ui/alert";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Field, Select, Textarea } from "@/components/ui/field";
+import { Field, Input, Select, Textarea } from "@/components/ui/field";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { getReportFlags } from "@/lib/data/admin";
@@ -271,6 +275,56 @@ export default async function AdminReportDetailPage({
               </Button>
             </form>
           </Card>
+
+          {report.report_type === "FOUND" ? (
+            <Card className="p-5">
+              <h2 className="flex items-center gap-2 text-sm font-semibold text-ink">
+                <Handshake className="h-4 w-4 text-brand" aria-hidden />
+                Serah terima di luar aplikasi
+              </h2>
+              <p className="mt-1 text-xs text-muted leading-relaxed">
+                Gunakan bila barang sudah diserahkan langsung tanpa klaim atau
+                penjadwalan di aplikasi. Semua klaim aktif akan ditutup, laporan
+                temuan dan laporan kehilangan terkait akan ditandai selesai.
+              </p>
+              <form
+                action={completeOfflineHandoverAction}
+                className="mt-4 space-y-3"
+              >
+                <input type="hidden" name="report_id" value={report.id} />
+                <Field label="Nama penerima" htmlFor="received_by" required>
+                  <Input
+                    id="received_by"
+                    name="received_by"
+                    placeholder="Nama lengkap penerima barang"
+                    required
+                  />
+                </Field>
+                <Field
+                  label="Tanggal penyerahan"
+                  htmlFor="handed_at"
+                  hint="Kosongkan untuk memakai waktu sekarang."
+                >
+                  <Input id="handed_at" name="handed_at" type="datetime-local" />
+                </Field>
+                <Field
+                  label="Catatan"
+                  htmlFor="handover_notes"
+                  hint="Opsional, mis. bukti foto atau nama saksi."
+                >
+                  <Textarea
+                    id="handover_notes"
+                    name="notes"
+                    rows={3}
+                    placeholder="Catatan serah terima..."
+                  />
+                </Field>
+                <Button type="submit" variant="secondary" className="w-full">
+                  Catat serah terima &amp; tutup laporan
+                </Button>
+              </form>
+            </Card>
+          ) : null}
 
           <Card className="p-5">
             <h2 className="text-sm font-semibold text-ink">
